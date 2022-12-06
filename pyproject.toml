@@ -1,9 +1,51 @@
-[build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
-build-backend = "setuptools.build_meta"
+[tool.poetry]
+name = "topdrawersoccer-sdk"
+version = "0.0.0"
+description = "A library for TopDrawerSoccer SDK packages."
+authors = ["Omar Crosby <omar.crosby@gmail.com>"]
 
-[tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
-version_scheme = "no-guess-dev"
+[tool.poetry.dependencies]
+python = "^3.9"
+beautifulsoup4 = "^4.11.1"
+requests = "^2.28.1"
+requests-mock = "^1.10.0"
+soccer-sdk-utils = "^0.0.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.10.0"
+invoke = "^1.7.3"
+flake8 = "^6.0.0"
+python-semantic-release = "^7.32.2"
+Flake8-pyproject = "^1.1.0.post0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.flake8]
+ignore = ['C901', 'W503']
+max-line-length = 88
+exclude = ['.env', '.venv', '.env', 'env', 'migrations', '__pycache__', 'manage.py', 'settings.py']
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = [
+    "tests/unit"
+]
+
+[tool.semantic_release]
+version_source = "commit"
+version_variable = [
+    "soccer_sdk_utils/__init__.py:__version__"
+]
+version_toml = [
+    "pyproject.toml:tool.poetry.version"
+]
+major_on_zero = true
+branch = "main"
+upload_to_pypi = true
+upload_to_release = false
+commit_subject = "chore: release {version} [skip ci] ***NO_CI***"
+build_command = "pip install --upgrade pip && pip install poetry && poetry install && poetry build"

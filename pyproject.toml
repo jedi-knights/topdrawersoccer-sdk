@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "topdrawersoccer-sdk"
-version = "0.0.0"
+version = "0.1.0"
 description = "A library for TopDrawerSoccer SDK packages."
 authors = ["Omar Crosby <omar.crosby@gmail.com>"]
 

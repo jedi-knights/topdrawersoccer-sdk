@@ -38,7 +38,7 @@ testpaths = [
 [tool.semantic_release]
 version_source = "commit"
 version_variable = [
-    "soccer_sdk_utils/__init__.py:__version__"
+    "topdrawersoccer_sdk/__init__.py:__version__"
 ]
 version_toml = [
     "pyproject.toml:tool.poetry.version"

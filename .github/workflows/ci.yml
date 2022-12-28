@@ -42,7 +42,7 @@ jobs:
       - name: Run Tests
         run: |
           source .venv/bin/activate
-          invoke cover
+          invoke coverage
 
       - name: Report Coverage
         uses: coverallsapp/github-action@master

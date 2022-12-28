@@ -5,6 +5,7 @@ from soccer_sdk_utils.gender import Gender
 
 from topdrawersoccer_sdk.division import Division
 from topdrawersoccer_sdk.constants import PREFIX
+from topdrawersoccer_sdk.models.conference import Conference
 
 
 def division_to_conference_url(division: Division) -> str:
@@ -35,6 +36,7 @@ def division_to_conference_url(division: Division) -> str:
 class ConferencePage(PageObject):
     def __init__(self):
         pass
+
 
 class ConferencesPage(PageObject):
     def __init__(self, gender: Gender, division: Division, **kwargs):

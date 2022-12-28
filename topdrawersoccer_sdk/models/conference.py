@@ -1,3 +1,9 @@
+import uuid
+
+from soccer_sdk_utils.tools import slugify
+
+from topdrawersoccer_sdk.models.values import Values
+
 
 class Conference:
     def __init__(self, **kwargs):

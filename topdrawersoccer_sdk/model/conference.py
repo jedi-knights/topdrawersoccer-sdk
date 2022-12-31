@@ -2,7 +2,7 @@ import uuid
 
 from soccer_sdk_utils.tools import slugify
 
-from topdrawersoccer_sdk.models.values import Values
+from topdrawersoccer_sdk.model.values import Values
 
 
 class Conference:

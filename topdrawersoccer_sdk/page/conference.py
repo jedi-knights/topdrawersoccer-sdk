@@ -25,7 +25,7 @@ from soccer_sdk_utils.tools import get_text_from_anchor
 
 from soccer_sdk_utils.dao.club import ClubDAO
 
-from topdrawersoccer_sdk.division import Division
+from soccer_sdk_utils.division import Division
 
 
 from topdrawersoccer_sdk.constants import PREFIX
@@ -447,7 +447,7 @@ class ConferencesPage(PageObject):
                 conference.ids = Values()
                 conference.urls = Values()
 
-                conference.urls.tds = urljoin(config.BASE_URL, href)
+                conference.urls.tds = urljoin(PREFIX, href)
                 conference.ids.tds = str(get_identifier_from_url(href))
 
                 conferences.append(conference)
@@ -467,6 +467,12 @@ class ConferencesPage(PageObject):
 
 
 if __name__ == "__main__":
+    import sys
+    from os import path
+    from dotenv import load_dotenv
+
+    load_dotenv(path.join(sys.path[1], ".env"))
+
     division = ConferencesPage.get_division_by_conference_name(
         Gender.Female, "West Coast"
     )
@@ -492,16 +498,21 @@ if __name__ == "__main__":
     )
     print(division)
 
-    # page = ConferenceCommitmentsPage(Gender.Female, Division.DI, "West Coast")
-    #
-    # players = page.get_commitments()
-    #
-    # for player in players:
-    #     print(player)
+    print()
+    print("West Cost Conference Commitments")
+    page = ConferenceCommitmentsPage(Gender.Female, Division.DI, "West Coast")
 
-    # page = SchoolCommitmentsPage(Gender.Female, "Santa Clara", clgid=474)
-    #
-    # players = page.get_commitments_by_year("2022")
-    #
-    # for player in players:
-    #     print(player)
+    players = page.get_commitments()
+
+    for player in players:
+        print(player)
+
+
+    print()
+    print("Santa Clara Commitments")
+    page = SchoolCommitmentsPage(Gender.Female, "Santa Clara", clgid=474)
+
+    players = page.get_commitments_by_year("2023")
+
+    for player in players:
+        print(player)

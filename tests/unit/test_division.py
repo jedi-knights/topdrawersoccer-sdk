@@ -1,4 +1,4 @@
-from topdrawersoccer_sdk.division import Division, string_to_division
+from soccer_sdk_utils.division import Division, string_to_division
 
 
 def test_division_str():

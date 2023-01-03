@@ -2,10 +2,15 @@ from urllib.parse import urljoin
 
 from soccer_sdk_utils.page import PageObject
 from soccer_sdk_utils.gender import Gender
+from soccer_sdk_utils.tools import get_href_from_anchor, get_text_from_anchor
 
-from topdrawersoccer_sdk.division import Division
+from soccer_sdk_utils.model.school import School
+
+from soccer_sdk_utils.division import Division
 from topdrawersoccer_sdk.constants import PREFIX
-from topdrawersoccer_sdk.models.conference import Conference
+from soccer_sdk_utils.model.conference import Conference
+from soccer_sdk_utils.model.values import Values
+from topdrawersoccer_sdk.utils import get_identifier_from_url
 
 
 def division_to_conference_url(division: Division) -> str:
@@ -34,8 +39,28 @@ def division_to_conference_url(division: Division) -> str:
 
 
 class ConferencePage(PageObject):
-    def __init__(self):
-        pass
+    def __init__(self, _conference: Conference, **kwargs):
+        super().__init__(**kwargs)
+        self.conference = _conference
+
+    def schools(self) -> list:
+        """Returns a list of schools in the conference"""
+        schools = []
+
+        self.load(self.conference.urls.tds)
+        anchors = self.soup.find_all("a", class_=["player-name"])
+        for anchor in anchors:
+            school = School()
+            school.name = get_text_from_anchor(anchor)
+            school.gender = self.conference.gender
+            school.urls = Values(
+                tds=urljoin(PREFIX, get_href_from_anchor(anchor))
+            )
+            school.ids = Values(tds=get_identifier_from_url(school.urls.tds))
+
+            schools.append(school)
+
+        return schools
 
 
 class ConferencesPage(PageObject):

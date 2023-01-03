@@ -1,6 +1,6 @@
 import pytest
 
-from topdrawersoccer_sdk.division import Division
+from soccer_sdk_utils.division import Division
 from topdrawersoccer_sdk.conference import division_to_conference_url
 
 

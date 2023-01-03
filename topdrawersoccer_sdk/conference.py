@@ -2,12 +2,15 @@ from urllib.parse import urljoin
 
 from soccer_sdk_utils.page import PageObject
 from soccer_sdk_utils.gender import Gender
+from soccer_sdk_utils.tools import get_href_from_anchor, get_text_from_anchor
 
-from topdrawersoccer_sdk.model.school import School
+from soccer_sdk_utils.model.school import School
 
-from topdrawersoccer_sdk.division import Division
+from soccer_sdk_utils.division import Division
 from topdrawersoccer_sdk.constants import PREFIX
-from topdrawersoccer_sdk.model.conference import Conference
+from soccer_sdk_utils.model.conference import Conference
+from soccer_sdk_utils.model.values import Values
+from topdrawersoccer_sdk.utils import get_identifier_from_url
 
 
 def division_to_conference_url(division: Division) -> str:
@@ -51,9 +54,9 @@ class ConferencePage(PageObject):
             school.name = get_text_from_anchor(anchor)
             school.gender = self.conference.gender
             school.urls = Values(
-                tds=urljoin(config.BASE_URL, get_href_from_anchor(anchor))
+                tds=urljoin(PREFIX, get_href_from_anchor(anchor))
             )
-            school.ids = Values(tds=utils.get_identifier_from_url(school.urls.tds))
+            school.ids = Values(tds=get_identifier_from_url(school.urls.tds))
 
             schools.append(school)
 

@@ -309,7 +309,7 @@ class ConferencePage(PageObject):
             school.name = get_text_from_anchor(anchor)
             school.gender = self.conference.gender
             school.urls = Values(
-                tds=urljoin(config.BASE_URL, get_href_from_anchor(anchor))
+                tds=urljoin(PREFIX, get_href_from_anchor(anchor))
             )
             school.ids = Values(tds=get_identifier_from_url(school.urls.tds))
 
@@ -506,7 +506,6 @@ if __name__ == "__main__":
 
     for player in players:
         print(player)
-
 
     print()
     print("Santa Clara Commitments")

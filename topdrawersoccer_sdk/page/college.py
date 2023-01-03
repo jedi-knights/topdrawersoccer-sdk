@@ -71,6 +71,7 @@ class CollegeDetailsPage(PageObject):
 
         return details
 
+
 if __name__ == "__main__":
     details = CollegeDetailsPage(Gender.Female, "University of North Carolina").get_details()
 

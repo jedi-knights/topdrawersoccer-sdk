@@ -8,6 +8,7 @@ from soccer_sdk_utils.tools import get_href_from_anchor
 from soccer_sdk_utils.tools import get_text_from_anchor
 
 from topdrawersoccer_sdk.constants import PREFIX
+from topdrawersoccer_sdk.utils import get_identifier_from_url
 
 
 class CoachingChangePage(PageObject):

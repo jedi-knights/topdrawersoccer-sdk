@@ -3,6 +3,8 @@ from urllib.parse import urljoin
 from soccer_sdk_utils.page import PageObject
 from soccer_sdk_utils.gender import Gender
 
+from topdrawersoccer_sdk.model.school import School
+
 from topdrawersoccer_sdk.division import Division
 from topdrawersoccer_sdk.constants import PREFIX
 from topdrawersoccer_sdk.model.conference import Conference

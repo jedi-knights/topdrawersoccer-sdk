@@ -1,51 +1,29 @@
-from http import HTTPStatus
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
 
+import bs4
+import requests
 from soccer_sdk_utils.division import Division, DivisionList
 from soccer_sdk_utils.gender import Gender, string_to_gender
 from soccer_sdk_utils.model.conference import Conference
 from soccer_sdk_utils.model.school import School
 from soccer_sdk_utils.tools import urljoin
 from soccer_sdk_utils.page import PageObject
-# from page.tds import config, utils
 from soccer_sdk_utils.tools import get_href_from_anchor, get_text_from_anchor
 
 from topdrawersoccer_sdk.constants import PREFIX
+from topdrawersoccer_sdk.mapping import TEAMS_URL
 from topdrawersoccer_sdk.utils import url_to_gender, get_identifier_from_url
-
-URL_MAPPING = {"di"}
 
 
 class TeamsPage(PageObject):
-    def __init__(self, gender: Gender, division: Division, **kwargs):
+    def __init__(self, division: Division, **kwargs):
         super().__init__(**kwargs)
 
-        self.gender = gender
         self.division = division
-
-        if self.division == Division.DI:
-            self.url = "https://www.topdrawersoccer.com/college/teams/?divisionName=di&divisionId=1"
-        elif self.division == Division.DII:
-            self.url = "https://www.topdrawersoccer.com/college/teams/?divisionName=dii&divisionId=2"
-        elif self.division == Division.DIII:
-            self.url = "https://www.topdrawersoccer.com/college/teams/?divisionName=diii&divisionId=3"
-        elif self.division == Division.NAIA:
-            self.url = "https://www.topdrawersoccer.com/college/teams/?divisionName=naia&divisionId=4"
-        elif self.division == Division.NJCAA:
-            self.url = "https://www.topdrawersoccer.com/college/teams/?divisionName=njcaa&divisionId=5"
-        else:
-            raise ValueError(f"Invalid division: {self.division}")
-
-        # self.url = urljoin(config.BASE_URL, f"college/teams/?{repr(division)}")
+        self.url = TEAMS_URL[self.division]
 
         self.load()
-
-    @property
-    def gender(self) -> Gender:
-        return self._gender
-
-    @gender.setter
-    def gender(self, value: Gender):
-        self._gender = value
 
     @property
     def division(self) -> Division:
@@ -55,11 +33,8 @@ class TeamsPage(PageObject):
     def division(self, value: Division):
         self._division = value
 
-    def conference_names(self):
+    def get_conference_names(self):
         conference_names = []
-
-        if self.status_code != HTTPStatus.OK:
-            raise ValueError(f"Failed to get teams page: {self.status_code}")
 
         tables = self.soup.find_all("table", class_=["table-striped", "tds-table"])
 
@@ -74,9 +49,6 @@ class TeamsPage(PageObject):
     def get_conferences(self) -> list[Conference]:
         conferences = []
 
-        if self.status_code != HTTPStatus.OK:
-            raise ValueError(f"Failed to get teams page: {self.status_code}")
-
         tables = self.soup.find_all("table", class_=["table-striped", "tds-table"])
 
         for table in tables:
@@ -84,25 +56,22 @@ class TeamsPage(PageObject):
 
             text = get_text_from_anchor(caption_tag)
             href = get_href_from_anchor(caption_tag)
-
             url = urljoin(PREFIX, href)
-            tds_id = get_identifier_from_url(url)
+
+            parsed_url = urlparse(url)
+            conference_id = parse_qs(parsed_url.query)["conferenceId"][0]
 
             conference = Conference()
-            conference.gender = self.gender
             conference.name = text
             conference.division = self.division
             conference.urls.tds = url
-            conference.ids.tds = tds_id
+            conference.ids.tds = conference_id
 
             conferences.append(conference)
 
         return conferences
 
     def get_conference_by_name(self, conference_name: str) -> Conference | None:
-        if self.status_code != HTTPStatus.OK:
-            raise ValueError(f"Failed to get teams page: {self.status_code}")
-
         tables = self.soup.find_all("table", class_=["table-striped", "tds-table"])
 
         for table in tables:
@@ -115,22 +84,24 @@ class TeamsPage(PageObject):
 
             conference = Conference()
             conference.name = name
-            conference.gender = self.gender
             conference.division = self.division
             conference.urls.tds = urljoin(
                 PREFIX, get_href_from_anchor(caption_tag)
             )
-            conference.ids.tds = get_identifier_from_url(conference.urls.tds)
+
+            url = urljoin(PREFIX, conference.urls.tds)
+
+            parsed_url = urlparse(url)
+            conference_id = parse_qs(parsed_url.query)["conferenceId"][0]
+
+            conference.ids.tds = conference_id
 
             return conference
 
         return None
 
-    def get_schools_by_conference(self, target_conference_name: str) -> list[School]:
+    def get_schools_by_conference_name(self, target_conference_name: str, gender: Gender) -> list[School]:
         schools = []
-
-        if self.status_code != HTTPStatus.OK:
-            raise ValueError(f"Failed to get teams page: {self.status_code}")
 
         tables = self.soup.find_all("table", class_=["table-striped", "tds-table"])
 
@@ -151,7 +122,7 @@ class TeamsPage(PageObject):
                 buffer = url_to_gender(href)
                 href_gender = string_to_gender(buffer)
 
-                if href_gender != self.gender:
+                if href_gender != gender:
                     continue
 
                 href_id = get_identifier_from_url(href)
@@ -166,20 +137,15 @@ class TeamsPage(PageObject):
 
         return schools
 
-
-class TeamsPages:
-    def __init__(self):
-        pass
-
-    def clgid_lookup(self, gender: Gender, school_name: str):
+    def get_clgid_by_name(self, target_school_name: str, gender: Gender) -> str | None:
         for division in DivisionList:
-            teams_page = TeamsPage(gender, division)
+            teams_page = TeamsPage(division)
             conferences = teams_page.get_conferences()
 
             for conference in conferences:
-                schools = teams_page.get_schools_by_conference(conference.name)
+                schools = teams_page.get_schools_by_conference_name(conference.name, gender)
                 for school in schools:
-                    if school.name != school_name:
+                    if school.name != target_school_name:
                         continue
 
                     if school.gender != gender:
@@ -189,81 +155,120 @@ class TeamsPages:
 
         return None
 
-    def division_by_conference_name(self, conference_name: str):
-        for division in DivisionList:
-            conferences = TeamsPage(division).get_conferences()
 
-            for name, conference_data in conferences.items():
-                if name == conference_name:
-                    return division
+def get_division_by_conference_name(conference_name: str) -> Division | None:
+    for division in DivisionList:
+        conferences = TeamsPage(division).get_conferences()
 
-        return None
+        for name, conference_data in conferences.items():
+            if name == conference_name:
+                return division
 
-    def conference_names(self, gender: Gender):
-        conference_names = []
+    return None
 
-        for division in DivisionList:
-            page = self.pages[division.name]
-            conference_names.extend(page.conference_names())
 
-        return conference_names
+def get_schools_by_conference_name(conference_name: str, gender: Gender):
+    for division in DivisionList:
+        page = TeamsPage(division)
 
-    def school_names(self, gender: Gender):
-        conferences = self.conference_names()
+        tables = page.soup.find_all("table", class_=["table-striped", "tds-table"])
 
-        school_names = []
-        for conference in conferences:
-            schools = self.school_names_by_conference(conference)
-            school_names.extend(schools)
+        for table in tables:
+            schools = []
 
-    def schools_by_conference_name(self, gender: Gender, conference_name: str):
-        for division in DivisionList:
-            page = self.pages[division.name]
+            caption_tag = table.find("caption")
+            current_conference_name = get_text_from_anchor(caption_tag)
 
-            tables = page.soup.find_all("table", class_=["table-striped", "tds-table"])
+            if current_conference_name != conference_name:
+                continue
 
-            for table in tables:
-                schools = []
+            rows = table.find_all("tr")
+            for row in rows:
+                column = row.find("td")
 
-                caption_tag = table.find("caption")
-                current_conference_name = get_text_from_anchor(caption_tag)
+                href = get_href_from_anchor(column)
 
-                if current_conference_name != conference_name:
+                if string_to_gender(url_to_gender(href)) != gender:
                     continue
 
-                rows = table.find_all("tr")
-                for row in rows:
-                    column = row.find("td")
+                school = School()
+                school.gender = gender
+                school.name = get_text_from_anchor(column)
+                school.urls.tds = href
+                school.ids.tds = get_identifier_from_url(school.urls.tds)
 
-                    href = get_href_from_anchor(column)
+                schools.append(school)
 
-                    if string_to_gender(url_to_gender(href)) != gender:
-                        continue
+            return schools
 
-                    school = School()
-                    school.gender = gender
-                    school.name = get_text_from_anchor(column)
-                    school.urls.tds = href
-                    school.ids.tds = get_identifier_from_url(school.urls.tds)
-
-                    schools.append(school)
-
-                return schools
-
-        return None
+    return None
 
 
 if __name__ == "__main__":
-    page = TeamsPage(Gender.Female, Division.DI)
+    data = []
+
+    for division, url in TEAMS_URL.items():
+        res = requests.get(url)
+
+        res.raise_for_status()
+        soup = bs4.BeautifulSoup(res.content, "html.parser")
+
+        tables = soup.find_all("table", class_=["table-striped", "tds-table"])
+
+        for table in tables:
+            caption_tag = table.find("caption")
+
+            conference_name = get_text_from_anchor(caption_tag)
+            conference_url = urljoin(PREFIX, get_href_from_anchor(caption_tag))
+
+            parsed_url = urlparse(conference_url)
+            conference_id = parse_qs(parsed_url.query)["conferenceId"][0]
+
+            rows = table.find_all("tr")
+            for row in rows:
+                column = row.find("td")
+
+                href = get_href_from_anchor(column)
+
+                if href is None:
+                    continue
+
+                school_name = get_text_from_anchor(column)
+
+                school_url = urljoin(PREFIX, href)
+                school_id = get_identifier_from_url(school_url)
+
+                if "/men/" in school_url:
+                    gender = Gender.Male
+                else:
+                    gender = Gender.Female
+
+                data.append({
+                    "division": division,
+                    "conference_name": conference_name,
+                    "conference_url": conference_url,
+                    "conference_id": conference_id,
+                    "school_name": school_name,
+                    "school_url": school_url,
+                    "school_id": school_id,
+                    "gender": gender
+                })
+
+    from pprint import pprint
+
+    for item in data:
+        pprint(item)
+
+    # page = TeamsPage(Gender.Female, Division.DI)
 
     # conference = page.get_conference_by_name("West Coast")
     # print(conference)
 
-    conferences = page.get_conferences()
-    schools = page.get_schools_by_conference("West Coast")
-
-    for school in schools:
-        print(school)
+    # conferences = page.get_conferences()
+    # schools = page.get_schools_by_conference("West Coast")
+    #
+    # for school in schools:
+    #     print(school)
 
     # clgid = TeamsPages().clgid_lookup(Gender.Female, "Santa Clara")
     #

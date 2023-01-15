@@ -10,7 +10,7 @@ This package contains modules and packages providing access to TopDrawerSoccer d
 Install dependencies
 
 ```bash
-$ poetry install
+$ pip install -e .
 ```
 
 

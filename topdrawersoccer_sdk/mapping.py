@@ -1,3 +1,9 @@
+from soccer_sdk_utils.tools import urljoin
+from soccer_sdk_utils.division import Division
+
+from topdrawersoccer_sdk.constants import PREFIX
+
+
 POSITION = {
     "All": 0,
     "Goalkeeper": 1,
@@ -81,4 +87,20 @@ REGION = {
     "South Atlantic": 11,
     "Southern California": 1,
     "Texas": 8,
+}
+
+DIVISION_URL = {
+    Division.DI: urljoin(PREFIX, "/college-soccer/college-conferences/di/divisionid-1"),
+    Division.DII: urljoin(PREFIX, "/college-soccer/college-conferences/dii/divisionid-2"),
+    Division.DIII: urljoin(PREFIX, "/college-soccer/college-conferences/diii/divisionid-3"),
+    Division.NAIA: urljoin(PREFIX, "/college-soccer/college-conferences/naia/divisionid-4"),
+    Division.NJCAA: urljoin(PREFIX, "/college-soccer/college-conferences/njcaa/divisionid-5")
+}
+
+TEAMS_URL = {
+    Division.DI: urljoin(PREFIX, "/college/teams/?divisionName=di&divisionId=1"),
+    Division.DII: urljoin(PREFIX, "/college/teams/?divisionName=dii&divisionId=2"),
+    Division.DIII: urljoin(PREFIX, "/college/teams/?divisionName=diii&divisionId=3"),
+    Division.NAIA: urljoin(PREFIX, "/college/teams/?divisionName=naia&divisionId=4"),
+    Division.NJCAA: urljoin(PREFIX, "/college/teams/?divisionName=njcaa&divisionId=5")
 }
